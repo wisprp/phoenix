@@ -2,3 +2,10 @@
 .vscode
 function.zip
 main
+
+### terraform
+# Local .terraform directories
+**/.terraform/*
+# .tfstate files
+*.tfstate
+*.tfstate.*
