@@ -2,9 +2,16 @@ variable "sns_name" {
   default = "nill"
 }
 variable "phx_prefix" {}
+variable "endpoint" {
+  default = {
+    "type"     = "lambda",
+    "arn"      = "none"
+  }
+
+}
 
 
-resource "aws_sns_topic" "user_updates" {
+resource "aws_sns_topic" "topic" {
   name = "${var.phx_prefix}-${var.sns_name}"
   delivery_policy = <<EOF
 {
@@ -25,4 +32,14 @@ resource "aws_sns_topic" "user_updates" {
   }
 }
 EOF
+}
+
+resource "aws_sns_topic_subscription" "sns-subscription" {
+  topic_arn = aws_sns_topic.topic.arn
+  protocol  = var.endpoint.type
+  endpoint  = var.endpoint.arn
+
+  depends_on = [
+    aws_sns_topic.topic,
+  ]
 }

@@ -7,7 +7,7 @@ module "transform-parsoid" {
   source              = "./lambdas"
   phx_prefix          = var.phx_prefix
   lambda_name         = "transform-parsoid"
-  s3_rw_buckets          = ["${var.phx_prefix}-canonical-content-store"]
+  s3_rw_buckets       = ["${var.phx_prefix}-canonical-content-store"]
 }
 
 # S3 buckets
@@ -22,4 +22,8 @@ module "sns-raw-content-incoming" {
   source              = "./sns"
   phx_prefix          = var.phx_prefix
   sns_name            = "sns-raw-content-incoming"
+  endpoint            = {
+    "type"            = module.transform-parsoid.type
+    "arn"             = module.transform-parsoid.arn
+  }
 }
