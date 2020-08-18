@@ -148,3 +148,10 @@ resource "aws_cloudwatch_log_group" "lambda_cloudwatch" {
   name              = "/aws/lambda/${var.phx_prefix}-${var.lambda_name}"
   retention_in_days = 14
 }
+
+output "type" {
+  value = "lambda"
+}
+output "arn" {
+  value = aws_lambda_function.app_lambda.arn
+}
