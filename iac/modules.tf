@@ -7,6 +7,7 @@ module "transform-parsoid" {
   source              = "./lambdas"
   phx_prefix          = var.phx_prefix
   lambda_name         = "transform-parsoid"
+  s3_rw_buckets          = ["${var.phx_prefix}-canonical-content-store"]
 }
 
 # S3 buckets

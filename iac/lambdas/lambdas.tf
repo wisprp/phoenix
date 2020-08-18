@@ -1,8 +1,15 @@
 # define lambdas/subscriptions/cloudwatch
+# TODO: specificically define S3 ARN for R and RW access from lambda via var/module
+
 variable "lambda_name" {
   default = "nill"
 }
 variable "phx_prefix" {}
+variable "s3_rw_buckets" {
+  description = "List of the bucket with RW access from the lambda function"
+  type    = set(string)
+  default = []
+}
 
 # Compile/provision lambda 
 resource "null_resource" "build_lambda" {
@@ -42,6 +49,7 @@ resource "aws_iam_role" "lambda_iam_role" {
 EOF
 }
 
+### CloudWatch
 # customize roles by defining and passing variables from modules definition (if needed in future)
 resource "aws_iam_policy" "lambda_logging" {
   name        = "${var.phx_prefix}_lambda_${var.lambda_name}_logging"
@@ -66,15 +74,49 @@ resource "aws_iam_policy" "lambda_logging" {
 EOF
 }
 
-resource "aws_iam_role_policy_attachment" "lambda_logs" {
+resource "aws_iam_role_policy_attachment" "lambda_logging" {
   role       = aws_iam_role.lambda_iam_role.name
   policy_arn = aws_iam_policy.lambda_logging.arn
 }
 
-# resource "aws_iam_role_policy_attachment" "lambda_s3" {
-#   role       = aws_iam_role.lambda_iam_role.name
-#   policy_arn = aws_iam_policy.lambda_logging.arn
-# }
+### S3
+# customize roles by defining and passing variables from modules definition (if needed in future)
+resource "aws_iam_policy" "lambda_s3_rw_access" {
+  for_each = var.s3_rw_buckets
+
+  name        = "${var.phx_prefix}_lambda_${var.lambda_name}_lambda_s3_rw_access_${each.value}"
+  path        = "/"
+  description = "IAM policy for RW access to S3 from a lambda"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": ["s3:ListBucket"],
+      "Resource": ["arn:aws:s3:::${each.value}"]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:PutObject",
+        "s3:GetObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": ["arn:aws:s3:::${each.value}/*"]
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_s3_rw_access" {
+  for_each = var.s3_rw_buckets
+
+  role       = aws_iam_role.lambda_iam_role.name
+  policy_arn = aws_iam_policy.lambda_s3_rw_access[each.value].arn
+}
 
 resource "aws_lambda_function" "app_lambda" {
   filename      = "../lambdas/${var.lambda_name}/function.zip"
