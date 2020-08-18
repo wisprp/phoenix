@@ -1,6 +1,4 @@
-variable "bucket_name" {
-  default = "nill"
-}
+variable "bucket_name" {}
 variable "phx_prefix" {}
 
 # buckets definition
